@@ -1,102 +1,100 @@
-import turtle
-import time
+import pygame
 import random
 
-# Set up the screen
-wn = turtle.Screen()
-wn.title("Snake Game")
-wn.bgcolor("green")
-wn.setup(width=600, height=600)
+# Initialize pygame
+pygame.init()
 
-# Create a snake head
-head = turtle.Turtle()
-head.speed(0)
-head.shape("square")
-head.color("black")
-head.penup()
-head.goto(0,0)
-head.direction = "stop"
+# Set the window size
+width = 500
+height = 500
 
-# Create food
-food = turtle.Turtle()
-food.speed(0)
-food.shape("circle")
-food.color("red")
-food.penup()
-food.goto(0,100)
+# Create the window
+screen = pygame.display.set_mode((width, height))
 
-# Create the snake body segments
-segments = []
+# Set the title of the window
+pygame.display.set_caption("Snake Game")
 
-# Define movement functions
-def go_up():
-    if head.direction != "down":
-        head.direction = "up"
+# Define the colors
+white = (255, 255, 255)
+black = (0, 0, 0)
+red = (255, 0, 0)
 
-def go_down():
-    if head.direction != "up":
-        head.direction = "down"
+# Set the clock for controlling the game speed
+clock = pygame.time.Clock()
 
-def go_left():
-    if head.direction != "right":
-        head.direction = "left"
+# Set the font for displaying the score
+font = pygame.font.Font(None, 30)
 
-def go_right():
-    if head.direction != "left":
-        head.direction = "right"
+# Define the size of each block in the game
+block_size = 10
 
-def move():
-    if head.direction == "up":
-        y = head.ycor()
-        head.sety(y + 20)
+# Initialize the score
+score = 0
 
-    if head.direction == "down":
-        y = head.ycor()
-        head.sety(y - 20)
+# Define the initial position and size of the snake
+x = 250
+y = 250
+snake_size = 10
+snake_list = []
+snake_length = 1
 
-    if head.direction == "left":
-        x = head.xcor()
-        head.setx(x - 20)
+# Define the initial position of the food
+food_x = 0
+food_y = 0
 
-    if head.direction == "right":
-        x = head.xcor()
-        head.setx(x + 20)
+# Function for generating the food
+def generate_food():
+    global food_x, food_y
+    food_x = round(random.randrange(0, width - block_size) / 10.0) * 10.0
+    food_y = round(random.randrange(0, height - block_size) / 10.0) * 10.0
 
-# Set up key bindings
-wn.listen()
-wn.onkeypress(go_up, "Up")
-wn.onkeypress(go_down, "Down")
-wn.onkeypress(go_left, "Left")
-wn.onkeypress(go_right, "Right")
+# Generate the first food
+generate_food()
+
+# Set the initial direction of the snake
+direction = "right"
 
 # Main game loop
-while True:
-    wn.update()
+running = True
+while running:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
 
-    # Check for collision with the border
-    if head.xcor()>290 or head.xcor()<-290 or head.ycor()>290 or head.ycor()<-290:
-        time.sleep(1)
-        head.goto(0,0)
-        head.direction = "stop"
+        # Handle the key events for controlling the snake
+        keys = pygame.key.get_pressed()
+        if keys[pygame.K_LEFT]:
+            direction = "left"
+        if keys[pygame.K_RIGHT]:
+            direction = "right"
+        if keys[pygame.K_UP]:
+            direction = "up"
+        if keys[pygame.K_DOWN]:
+            direction = "down"
 
-        # Hide the segments
-        for segment in segments:
-            segment.goto(1000, 1000)
+    # Move the snake in the desired direction
+    if direction == "right":
+        x += block_size
+    if direction == "left":
+        x -= block_size
+    if direction == "up":
+        y -= block_size
+    if direction == "down":
+        y += block_size
 
-        # Clear the segments list
-        segments.clear()
+    # Check if the snake has collided with the walls
+    if x >= width or x < 0 or y >= height or y < 0:
+        running = False
 
-    # Check for collision with food
-    if head.distance(food) < 20:
-        # Move the food to a random location
-        x = random.randint(-290, 290)
-        y = random.randint(-290, 290)
-        food.goto(x,y)
+    # Add the new position of the snake to the snake_list
+    snake_head = []
+    snake_head.append(x)
+    snake_head.append(y)
+    snake_list.append(snake_head)
 
-        # Add a segment to the snake
-        new_segment = turtle.Turtle()
-        new_segment.speed(0)
-        new_segment.shape("square")
-        new_segment.color("grey")
-        new_segment.penup()
-        segments.append(new
+    # Check if the length of the snake_list is more than the snake_length
+    if len(snake_list) > snake_length:
+        del snake_list[0]
+
+    # Check if the snake has collided with itself
+    for block in snake_list[:-1]:
